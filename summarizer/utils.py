@@ -6,6 +6,11 @@ import numpy
 
 class Utils:
     def comment_reader(self, commentfile):
+        """
+        Read all comments from a file
+        :param commentfile: input file
+        :return: Pandas DataFrame containing the file contents
+        """
         # prepare a parser fot the dates in DB
         dparse = lambda date: datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
 
@@ -33,6 +38,11 @@ class Utils:
         return comments
 
     def contribution_reader(self, contribfile):
+        """
+        Read all contributions from a file
+        :param contribfile: input file
+        :return: Pandas DataFrame containing the file contents
+        """
         # prepare a parser fot the dates in DB
         dparse = lambda date: datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
         colTypeMapping = {
@@ -58,6 +68,11 @@ class Utils:
         return contributions
 
     def get_except_words(self, file):
+        """
+        Read the words that should be contained in the exception list
+        :param file: input file
+        :return: a list of all the words in the file
+        """
         with codecs.open(file, "r", encoding="utf8") as file:
             exceptwords = file.readlines()
 

@@ -82,6 +82,13 @@ class Summarizer:
         return words
 
     def check_similar_words(self, words):
+        """
+        This function check for similar words, to remove e. g. "finde" and "finden", as they have the same meaning.
+        Check for word length as a first heuristic, then check if one word contains the other => same.
+
+        :param words: words to check
+        :return: list of similar words in the input. Only the latter similar word is returned.
+        """
         similar = []
         for i in range(len(words)):
             for j in range(i+1, len(words)):
