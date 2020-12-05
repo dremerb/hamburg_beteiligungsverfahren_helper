@@ -4,12 +4,11 @@ import os
 
 
 def main():
-    util = utils.Utils()
     # read comments
-    comments = util.comment_reader("demodata/2020-11-20 Jungfernstieg_Kommentare.csv")
+    comments = utils.comment_reader("demodata/2020-11-20 Jungfernstieg_Kommentare.csv")
 
     # read contributions
-    contributions = util.contribution_reader("demodata/2020-11-20 Jungfernstieg_Beiträge.csv")
+    contributions = utils.contribution_reader("demodata/2020-11-20 Jungfernstieg_Beiträge.csv")
 
     # initialize the Summarizer
     summer = summarizer.Summarizer(contributions["text"].values.tolist())
@@ -20,7 +19,7 @@ def main():
     exceptwords = []
     for db in databases:
         if db[-4:] == ".txt":
-            exceptwords = exceptwords + (util.get_except_words("words/"+db))
+            exceptwords = exceptwords + (utils.get_except_words("words/"+db))
 
     print(exceptwords)
 

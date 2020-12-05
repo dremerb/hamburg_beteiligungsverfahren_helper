@@ -9,8 +9,26 @@ import heapq
 SENTENCELENGTH = 150
 
 
+def check_similar_words(words):
+    """
+    This function check for similar words, to remove e. g. "finde" and "finden", as they have the same meaning.
+    Check for word length as a first heuristic, then check if one word contains the other => same.
+
+    :param words: words to check
+    :return: list of similar words in the input. Only the latter similar word is returned.
+    """
+    similar = []
+    for i in range(len(words)):
+        for j in range(i+1, len(words)):
+            if abs(len(words[i]) - len(words[j])) < 3:              # if word length is similar
+                if words[i] in words[j] or words[j] in words[i]:    # if one word is contained in the other
+                    similar = similar + [words[j]]                    # mark as similar
+
+    return similar
+
+
 class Summarizer:
-    def __init__(self, all_contribs) -> dict:
+    def __init__(self, all_contribs):
         """
         Build a frequency table over all inputted contributions. Sets internal var self.freq_table
 
@@ -73,27 +91,10 @@ class Summarizer:
         # get the top words
         words = heapq.nlargest(sumlen, word_freq_table, key=word_freq_table.get)
 
-        similar = self.check_similar_words(words)
+        similar = check_similar_words(words)
         while len(similar) > 0:
             words = heapq.nlargest(sumlen + len(similar), word_freq_table, key=word_freq_table.get)
             words = [w for w in words if w not in similar]
-            similar = self.check_similar_words(words)
+            similar = check_similar_words(words)
 
         return words
-
-    def check_similar_words(self, words):
-        """
-        This function check for similar words, to remove e. g. "finde" and "finden", as they have the same meaning.
-        Check for word length as a first heuristic, then check if one word contains the other => same.
-
-        :param words: words to check
-        :return: list of similar words in the input. Only the latter similar word is returned.
-        """
-        similar = []
-        for i in range(len(words)):
-            for j in range(i+1, len(words)):
-                if abs(len(words[i]) - len(words[j])) < 3:              # if word length is similar
-                    if words[i] in words[j] or words[j] in words[i]:    # if one word is contained in the other
-                        similar = similar + [words[j]]                    # mark as similar
-
-        return similar
