@@ -37,7 +37,6 @@ class Summarizer:
         """
         # set up stopwords
         stopwords = set(corpus.stopwords.words("german"))
-
         # Make a huge text from all contributions for word freq analysis
         text = ""
         for c in all_contribs:
@@ -48,7 +47,7 @@ class Summarizer:
 
         # filter multiple spaces
         text = re.sub(r'\s+', ' ', text)
-        # remove all non-text stuff
+        # remove all non-text stuff (e. g. newlines or '.', ',')
         contrib_formatted = re.sub(r"[^a-zA-Zäüöß]", " ", text)
 
         # get word frequency (lowercase words)
