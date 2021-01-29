@@ -1,4 +1,7 @@
 import logging
+from typing import Dict
+
+from sklearn.feature_extraction.text import CountVectorizer
 
 from clustering.featuregenerator import Word2VecFeatureGenerator
 import pandas as pd
@@ -16,7 +19,7 @@ class ClusterService:
         self.feature_generator = feature_generator
         self.logger = logging.getLogger("Cluster-Service")
 
-    def get_cluster(self, data: pd.DataFrame, num_cluster: int):
+    def get_cluster(self, data: pd.DataFrame, num_cluster: int) -> Dict:
         final_cluster_generator = None
         for cluster_generator, supports_num_cluster in self.cluster_generators:
             if num_cluster >= 0:
@@ -35,14 +38,27 @@ class ClusterService:
 
         data = self.feature_generator.generate_features(data)
         data = final_cluster_generator.generate_clusters(data, num_cluster)
-        return self.transfer_into_format(data)
+        keywords = self.get_keywords(data)
+        return self.transfer_into_format(data, keywords)
 
     @staticmethod
-    def transfer_into_format(data: pd.DataFrame):
+    def get_keywords(data: pd.DataFrame, num_keywords=3) -> Dict:
+        keywords = {}
+        groups = data.groupby("cluster")
+        cv = CountVectorizer(max_features=2000)
+        for cluster_id, group in groups:
+            print(group['body'])
+            cv.fit_transform(group['body'])
+            keywords[cluster_id] = list(cv.vocabulary_.keys())[:num_keywords]
+        return keywords
+
+    @staticmethod
+    def transfer_into_format(data: pd.DataFrame, keywords: Dict) -> Dict:
         cluster = {}
         for index, row in data.iterrows():
-            if row['cluster'] in cluster:
-                cluster[row['cluster']].append(row['id'])
+            topics = ",".join(keywords[row["cluster"]])
+            if topics in cluster:
+                cluster[topics].append(row["id"])
             else:
-                cluster[row['cluster']] = [row['id']]
+                cluster[topics] = [row["id"]]
         return cluster
