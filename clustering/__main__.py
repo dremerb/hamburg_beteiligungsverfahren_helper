@@ -1,15 +1,14 @@
 import logging
 import sys
-from argparse import ArgumentParser
-import os
-import numpy as np
-from sklearn.manifold import TSNE
-from clustering.clustergenerator import Clustergenerator, AffinityClusterGenerator
-from clustering.dataloader import DataLoader, FileLoader, ExcelDataLoader
-from clustering.featuregenerator import Word2VecFeatureGenerator
-from sklearn.cluster import AffinityPropagation
+from flask import Flask, abort
+from flask import request
 import pandas as pd
-import matplotlib.pyplot as plt
+from clustering.clustergenerator import AffinityClusterGenerator, KMeansClusterGenerator
+from clustering.config import PATH_TO_MODEL
+from clustering.service import ClusterService
+from clustering.featuregenerator import Word2VecFeatureGenerator
+
+app = Flask(__name__)
 
 
 def logger_init():
@@ -24,52 +23,25 @@ def logger_init():
     root_logger.addHandler(ch)
 
 
-def parse_args():
-    parser = ArgumentParser()
-    parser.add_argument('--config', '-c', metavar='FILE', default='config.toml', help='config file')
-    args = parser.parse_args()
-    return args
+logger_init()
 
-def get_cmap(n, name='hsv'):
-    '''Returns a function that maps each index in 0, 1, ..., n-1 to a distinct
-    RGB color; the keyword argument name must be a standard mpl colormap name.'''
-    return plt.cm.get_cmap(name, n)
-
-def main():
-    cluster_set = []
-    data_directory = "../summarizer/demodata/"
-    for file in os.listdir(data_directory):
-        loader = FileLoader.file_mapping()[file.split(".")[-1]](data_directory + file)
-        if file.endswith('.xlsx') or "Beiträge" in file:
-            continue
-
-        data = loader.get_data()
-        generator = Word2VecFeatureGenerator("german.model")
-        cluster_generator = AffinityClusterGenerator()
-
-        data = generator.generate_features(data)
-        data = cluster_generator.generate_clusters(data)
-
-        # Visualization
-        feature_vectors = pd.DataFrame(data['feature_vector'].tolist())
-        tsne = TSNE(n_components=2, random_state=0, n_iter=5000, perplexity=2)
-        t = tsne.fit_transform(feature_vectors)
-        clusters = data['cluster'].tolist()
-
-        cmap = get_cmap(len(data['cluster'].unique().tolist()))
-        plt.figure(figsize=(12, 6))
-        for cluster, x, y in zip(clusters, t[:, 0], t[:, 1]):
-
-            plt.scatter(x, y, c=cmap(cluster), edgecolors='r')
-            if cluster in cluster_set:
-                plt.annotate("", xy=(x + 1, y + 1), xytext=(0, 0), textcoords='offset points')
-            else:
-                plt.annotate(cluster, xy=(x + 1, y + 1), xytext=(0, 0), textcoords='offset points')
-                cluster_set.append(cluster)
-        plt.show()
-        data.to_csv(f"cluster_{file}")
+generator = Word2VecFeatureGenerator(PATH_TO_MODEL)
+cluster_service = ClusterService(generator, [(AffinityClusterGenerator(), False), (KMeansClusterGenerator(), True)])
 
 
+@app.route('/cluster', methods=['POST'])
+def get_cluster():
+    logger = logging.getLogger("Cluster-Service")
+    cluster_count = -1
+    if not request.json or not 'configuration' in request.json:
+        abort(400)
 
-if __name__ == '__main__':
-    main()
+    configuration = request.json['configuration']
+    if "clusterCount" in configuration:
+        cluster_count = int(configuration['clusterCount'])
+
+    logger.info(f"Number of clusters: {cluster_count}")
+    documents = request.json['documents']
+    data = pd.DataFrame(documents)
+
+    return cluster_service.get_cluster(data, cluster_count)

@@ -1,8 +1,12 @@
 from abc import ABC, abstractmethod
+
+import nltk
 import pandas as pd
-from gensim.models import Word2Vec, Doc2Vec
-from gensim.models.doc2vec import TaggedDocument
+from gensim.models import Doc2Vec
 from gensim.utils import simple_preprocess
+from nltk.corpus import stopwords
+
+nltk.download('stopwords')
 
 class FeatureGenerator(ABC):
     @abstractmethod
@@ -11,29 +15,15 @@ class FeatureGenerator(ABC):
 
 
 class Word2VecFeatureGenerator(FeatureGenerator):
-    counter = 0
 
-    def __init__(self, path_to_model, train=False):
+    def __init__(self, path_to_model):
         self.path_to_model = path_to_model
-        self.should_train = train
-        self.model = None
+        self.model = Doc2Vec.load(path_to_model)
 
     def generate_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        df['TokenEmbedding'] = df['Comment Text'].apply(self.generate_tagged_document)
-        model = Doc2Vec(df['TokenEmbedding'], vector_size=50, min_count=2, epochs=40)
-        self.model = model
-        df['feature_vector'] = df['Comment Text'].apply(self.generate_feature)
+        df['feature_vector'] = df['body'].apply(self.generate_feature)
         return df
 
-    @staticmethod
-    def generate_tagged_document(line):
-        tokens = simple_preprocess(line)
-        Word2VecFeatureGenerator.counter += 1
-        return TaggedDocument(tokens, [Word2VecFeatureGenerator.counter])
-
     def generate_feature(self, sentence):
-        tokens = simple_preprocess(sentence)
+        tokens = [t for t in simple_preprocess(sentence) if t not in stopwords.words('german')]
         return self.model.infer_vector(tokens)
-
-    def train(self):
-        print(f"Not yet implemented: {self.train}")
