@@ -33,7 +33,7 @@ cluster_service = ClusterService(generator, [(AffinityClusterGenerator(), False)
 def get_cluster():
     logger = logging.getLogger("Cluster-Service")
     cluster_count = -1
-    if not request.json or not 'configuration' in request.json:
+    if not request.json or 'configuration' not in request.json:
         abort(400)
 
     configuration = request.json['configuration']
