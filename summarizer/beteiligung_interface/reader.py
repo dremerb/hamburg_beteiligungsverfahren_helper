@@ -17,7 +17,7 @@ def get_contributions_with_meta(verfahrensname):
     return contributions
 
 
-def get_contributions(verfahrensname):
+def get_all_contributions(verfahrensname):
     contribs = get_contributions_with_meta(verfahrensname)
     returnlist = []
     for c in contribs:
@@ -26,6 +26,14 @@ def get_contributions(verfahrensname):
     return returnlist
 
 
+def get_contribution(verfahrensname, nid):
+    contribs = get_contributions_with_meta(verfahrensname)
+    for c in contribs:
+        if c["nid"] != nid:
+            continue
+        return c["description"]
+
+
 def get_contributions_count(verfahrensname):
-    list = get_contributions(verfahrensname)
+    list = get_all_contributions(verfahrensname)
     return len(list)

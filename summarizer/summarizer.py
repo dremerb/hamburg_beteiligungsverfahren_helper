@@ -4,6 +4,7 @@ from nltk import tokenize
 from nltk import corpus
 import re
 import heapq
+import nltk     # put this here, because PEP8
 
 
 SENTENCELENGTH = 150
@@ -36,7 +37,12 @@ class Summarizer:
         :return: nothing
         """
         # set up stopwords
-        stopwords = set(corpus.stopwords.words("german"))
+        try:
+            stopwords = set(corpus.stopwords.words("german"))
+        except LookupError:
+            nltk.download('stopwords')
+            stopwords = set(corpus.stopwords.words("german"))
+
         # Make a huge text from all contributions for word freq analysis
         text = ""
         for c in all_contribs:
@@ -52,7 +58,12 @@ class Summarizer:
 
         # get word frequency (lowercase words)
         self.freq_table = dict()
-        lowercasewords = map(lambda w: w.lower(), tokenize.word_tokenize(contrib_formatted))
+        try:
+            lowercasewords = map(lambda w: w.lower(), tokenize.word_tokenize(contrib_formatted))
+        except LookupError:
+            nltk.download('punkt')
+            lowercasewords = map(lambda w: w.lower(), tokenize.word_tokenize(contrib_formatted))
+
         for word in lowercasewords:   # for every word
             if word not in stopwords:                                    # that is not a stopword
                 if len(word) > 3:                                        # filter short words (normally nor interesting)
