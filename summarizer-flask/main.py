@@ -17,6 +17,7 @@ def summary():
     # Get the contribution to summarize
     contribid = request.args.get("nid")
     project = request.args.get("proj")
+    sumlen = request.args.get("n")
 
     if contribid == None:
         logging.error(f"Request for '{project}' and '{contribid}' failed, as one was not provided!")
@@ -59,7 +60,7 @@ def summary():
             exceptwords = exceptwords + (utils.get_except_words("words/" + db))
 
     x = {"id": contribid,
-         "summary": summer.get_words(contributions[contribid], 10, exceptwords)}
+         "summary": summer.get_words(contributions[contribid], sumlen, exceptwords)}
     return jsonify(x)
 
 
