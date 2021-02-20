@@ -1,5 +1,9 @@
+__author__ = "Daniel Bremer"
+__copyright__ = "Copyright (C) 2021 Daniel Bremer"
+__license__ = "GPLv3"
+__version__ = "1.0"
+
 import requests
-import json
 
 BASEURL = ""
 
