@@ -11,9 +11,13 @@ app = Flask(__name__)
 contributions_cached = {}
 summarizer_cached = {}
 
+api_baseurl = ""
+
 
 @app.route('/summarize')
 def summary():
+    api_reader = readerv02.readerv02(api_baseurl)
+
     # Get the contribution to summarize
     contribid = request.args.get("nid")
     project = request.args.get("proj")
@@ -45,7 +49,7 @@ def summary():
         contributions = contributions_cached[project]
     else:  # else read contributions and write to cache
         logging.info(f'Building/Rebuilding cached contributions for project "{project}"')
-        contributions_cached[project] = readerv02.get_all_contributions(project, True)
+        contributions_cached[project] = api_reader.get_all_contributions(project, True)
         contributions = contributions_cached[project]
 
     # Check if summarizer is already cached for the selected project and cache still valid
@@ -69,10 +73,10 @@ def summary():
             exceptwords = exceptwords + (utils.get_except_words("words/" + db))
 
     # get the contribution that'll be summarized
-    sum_contribution = readerv02.get_contribution(project, contribid, True)
+    sum_contribution = api_reader.get_contribution(project, contribid, True)
 
     x = {"id": contribid,
-         "summary": summer.get_words(contributions[contribid], sumlen, exceptwords)}
+         "summary": summer.get_words(sum_contribution, sumlen, exceptwords)}
     return jsonify(x)
 
 
@@ -89,6 +93,7 @@ if __name__ == "__main__":
         logging.basicConfig(filename=app.config.get("LOGFILE"), encoding="utf-8",
                             level=eval(str("logging."+app.config.get("LOGLEVEL"))))
 
+    api_baseurl = app.config.get("BASEURL_API")
     # Start Flask
     port = app.config.get('PORT')
     logging.info(f"Starting server on port {port}")
