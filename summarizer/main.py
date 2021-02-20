@@ -1,4 +1,4 @@
-from beteiligung_interface import reader
+from beteiligung_interface import readerv02
 from datetime import datetime
 from flask import jsonify, Flask, request, abort
 import logging
@@ -45,7 +45,7 @@ def summary():
         contributions = contributions_cached[project]
     else:  # else read contributions and write to cache
         logging.info(f'Building/Rebuilding cached contributions for project "{project}"')
-        contributions_cached[project] = reader.get_all_contributions(project)
+        contributions_cached[project] = readerv02.get_all_contributions(project, True)
         contributions = contributions_cached[project]
 
     # Check if summarizer is already cached for the selected project and cache still valid
@@ -67,6 +67,9 @@ def summary():
     for db in databases:
         if db[-4:] == ".txt":
             exceptwords = exceptwords + (utils.get_except_words("words/" + db))
+
+    # get the contribution that'll be summarized
+    sum_contribution = readerv02.get_contribution(project, contribid, True)
 
     x = {"id": contribid,
          "summary": summer.get_words(contributions[contribid], sumlen, exceptwords)}
