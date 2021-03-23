@@ -89,4 +89,4 @@ if __name__ == "__main__":
     # Start Flask
     port = app.config.get('PORT')
     logging.info(f"Starting server on port {port}")
-    app.run(port=port, debug=True)
+    app.run(port=port)
